@@ -14,7 +14,8 @@ class Client:
         # Code Section
         self.initClientSocket()
         # TODO - get auth message
-        self.clientFD.send("Register:huri 1234")
+        # self.clientFD.send("Register:huri 1234")
+        self.clientActions()
 
 
     def initClientSocket(self):
@@ -23,8 +24,25 @@ class Client:
         self.clientFD.connect((self.serverIP, self.serverPort))          # Connect to remote server
         Utilities.logger('Connected Successfully')
 
-    def send(clientFD, data):
-        clientFD.send(data)
+    def clientActions(self):
+        # Variable Definitions
+        possibleActions = self.receive(self.clientFD)  # Receive actions list
+
+        # Code Section
+        while(True):
+            Utilities.logger(possibleActions)
+            action = raw_input("Please choose action \n")   # Get action from user
+            self.send(action)                               # Send action to server
+            response = self.receive(self.clientFD)          # Receive action response
+            Utilities.logger(response)                      # Print response
+
+
+    def send(self, data):
+        self.clientFD.send(data)
         Utilities.logger("Sent : " + str(data))
+
+    def receive(self, clientFD):
+        return clientFD.recv(1024)
+
 
 client = Client('127.0.0.1', 8080)

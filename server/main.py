@@ -12,8 +12,16 @@ class Server:
         self.serverFD       = None
         self.serverThread   = None
         self.clientThreads  = []
-        self.auth           = Auth.ServerAuth()
+        # self.auth           = Auth.ServerAuth()
 
+        self.actions = [
+            {"TIME": "time method"},
+            {"NAME":        "time method"},
+            {"EXIT":        "time method"},
+            {"SCREENSHOT": "time method"},
+            {"EXECUTE":     "time method"},
+            {"DIR_CONTENT": "time method"},
+        ]
 
         # Code Section
         self.initServerSocket(port)
@@ -39,22 +47,44 @@ class Server:
 
     def handleConnection(self, clientFD):
         # Code Section
-        authMessage = clientFD.recv(1024)
-        self.auth.authenticate(authMessage, self.auth)
+        # authMessage = clientFD.recv(1024)
+        # self.auth.authenticate(authMessage, self.auth)
 
 
-        # action = self.receive(clientFD) # Receive action
-
-        # while(True):
-        #     action = clientFD.recv(1024)  # Receive action
-        #     # action = self.receive(clientFD) # Receive action
-        #     Utilities.logger(action)
-        #     # self.performAction(clientFD)    # Perform action
+        while(True):
+            self.send(clientFD, self.actionsToString())             # Send actions list to client
+            actionIndex = self.receive(clientFD)                    # Receive action from client
+            response = self.performAction(int(actionIndex))         # Perform action
+            self.send(clientFD, response)
 
 
-    def send(clientFD, data):
+    def performAction(self, actionIndex):
+        # Variable Definition
+        actionDict  = self.actions[actionIndex]
+        dictKey     = next(iter(actionDict)) # Get first dict key
+
+        # Code Section
+        return actionDict[dictKey]
+
+
+    def actionsToString(self):
+        # Variable Definition
+        string = ''
+
+        # Code Section
+        for index, action in enumerate(self.actions): # Enumrate is used to get the element & the index
+            for key in action:
+                string +=  str(index) + ' - ' + key + '\n'
+
+        return string
+
+
+    def send(self, clientFD, data):
         clientFD.send(data)
         Utilities.logger("Sent : " + str(data))
+
+    def receive(self, clientFD):
+        return clientFD.recv(1024)
 
 
 

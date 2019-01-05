@@ -98,6 +98,9 @@ class Client:
             result = self.receive(self.clientFD)        # Receive command result
             self.CLIlogger(result)                      # Print result
 
+        serverMessage = self.receive(self.clientFD)     # Receive goodBye msg
+        self.CLIlogger(serverMessage)
+
 
     def CLIlogger(self, msg):
         # Variable Definition

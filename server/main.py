@@ -17,8 +17,8 @@ class Server:
         self.actions = [
             {"TIME":        getTimeMethod},
             {"NAME":        getComputerName},
-            {"EXIT":        self.closeConnection()},
-            {"SCREENSHOT":  screenObject.ScreenShots()},
+            {"EXIT":        self.closeConnection},
+            {"SCREENSHOT":  screenObject.CaptureScreenShot},
             {"CLI":         self.handleCLIrequests},
         ]
 
@@ -62,9 +62,9 @@ class Server:
         dictKey     = next(iter(actionDict)) # Get first dict key
 
         # Code Section
-        if(dictKey == "EXECUTE"):
+        if(dictKey == "CLI"):
             return actionDict[dictKey](clientFD)
-        return actionDict[dictKey]
+        return actionDict[dictKey]()
 
 
     def actionsToString(self):
@@ -96,8 +96,10 @@ class Server:
 
     def handleCLIrequests(self, clientFD):
         # Variable Definition
+        CLIobject               = CLI.CLI()       # Init CLI
         command                 = None
         welcomeMsg              = "Welcome to Huri's CLI\n"
+        goodByeMsg              = "GoodBye \n"
         waitingforCommandMsg    = "Please write a command or type 'exit' to quit CLI...\n"
 
         # Code Section
@@ -105,8 +107,11 @@ class Server:
         while(command != "exit"):
             self.send(clientFD, waitingforCommandMsg)
             command = self.receive(clientFD)
-            result  = runShellCommand(command)
+            result  = CLIobject.runShellCommand(command)
             self.send(clientFD, result)
+
+        self.send(clientFD,goodByeMsg)
+
 
 
 

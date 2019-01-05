@@ -7,7 +7,7 @@ class ScreenShot:
     def __init__(self):
         pass
 
-    def ScreenShots(self):
+    def CaptureScreenShot(self):
         img = ImageGrab.grab()          # Capture screen shot
         output = StringIO.StringIO()    # Create string object
         img.save(output, 'JPEG')        # Write image to stringIO as JPEG

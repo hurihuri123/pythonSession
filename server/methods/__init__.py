@@ -6,11 +6,8 @@ import CLI
 
 
 # Public packges
-getTimeMethod   = time.getTime()
-getComputerName = name.getComputerName()
-
+getTimeMethod   = time.getTime
+getComputerName = name.getComputerName
 
 screenObject = screenShot.ScreenShot()
-
-CLIobject = CLI.CLI()
-runShellCommand = CLIobject.runShellCommand
+getScreenShot = screenObject.CaptureScreenShot

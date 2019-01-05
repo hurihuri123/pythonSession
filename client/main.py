@@ -2,6 +2,7 @@ import socket
 
 # Local DLLs
 import utilities as Utilities
+from printColors import *
 import authentication as Auth
 
 class Client:
@@ -34,7 +35,8 @@ class Client:
             action = raw_input("Please choose action \n")   # Get action from user
             self.send(action)                               # Send action to server
             response = self.receive(self.clientFD)          # Receive action response
-            Utilities.logger(response)                      # Print response
+            message  = self.readResponse(response)          # Deserialize response
+            Utilities.logger(message)                       # Print response
 
 
     def send(self, data):
@@ -43,6 +45,17 @@ class Client:
 
     def receive(self, clientFD):
         return clientFD.recv(1024)
+
+    def readResponse(self, response):
+        # Variable Definition
+        response = Utilities.deserialize(response)
+
+        # Code Section
+        color = PrintColors.OKGREEN if response["status"] else PrintColors.FAIL
+        return color + response["message"]
+
+
+
 
 
 client = Client('127.0.0.1', 8080)

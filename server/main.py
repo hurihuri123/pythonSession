@@ -1,10 +1,10 @@
 import socket
 import threading
-import Cookie
 
-# Local DLLs
+# Local packages
 import utilities as Utilities
-import authentication as Auth
+from server.methods import *
+
 
 class Server:
     def __init__(self, port):
@@ -12,12 +12,12 @@ class Server:
         self.serverFD       = None
         self.serverThread   = None
         self.clientThreads  = []
-        # self.auth           = Auth.ServerAuth()
+        # self.auth           = Auth.ServerAuth() - create int __init__.py
 
         self.actions = [
-            {"TIME": "time method"},
-            {"NAME":        "time method"},
-            {"EXIT":        "time method"},
+            {"TIME":        getTimeMethod},
+            {"NAME":        getComputerName},
+            {"EXIT":        "hi"},
             {"SCREENSHOT": "time method"},
             {"EXECUTE":     "time method"},
             {"DIR_CONTENT": "time method"},
@@ -50,9 +50,8 @@ class Server:
         # authMessage = clientFD.recv(1024)
         # self.auth.authenticate(authMessage, self.auth)
 
-
+        self.send(clientFD, self.actionsToString())                 # Send actions list to client
         while(True):
-            self.send(clientFD, self.actionsToString())             # Send actions list to client
             actionIndex = self.receive(clientFD)                    # Receive action from client
             response = self.performAction(int(actionIndex))         # Perform action
             self.send(clientFD, response)
@@ -86,6 +85,10 @@ class Server:
     def receive(self, clientFD):
         return clientFD.recv(1024)
 
+    # def closeConnection(self):
+    #     # TODO - kill/stop thread
+    #     # Code Section
+    #     return Utilities.getResponseObject(True, 'Bye Bye')
 
 
 server = Server(8080) # Init server socket

@@ -1,6 +1,6 @@
 # Local DLLs
-import utilities as Utilities
-import sqliteDB  as DB
+import server.utilities as Utilities
+import server.auth.sqliteDB  as DB
 
 class ServerAuth:
     def __init__(self):

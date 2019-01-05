@@ -12,3 +12,6 @@ class ClientAuth:
     def getAuthMsg(self):
         msg = self.login + self.userName + " " + str(self.password)
         return msg
+
+    def getUserName(self):
+        return self.userName

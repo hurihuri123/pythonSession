@@ -57,7 +57,8 @@ class Server:
         # Code Section
         while(True):
             client, address = self.serverFD.accept()     # Accept new connection
-            Utilities.logger("Accepted new connection from " + address[0])
+            userName = self.receive(client)
+            Utilities.logger("Accepted new connection from " + userName)
 
             t = threading.Thread(target = self.handleConnection, args = (client,)).start() # Start connection handler thread
             self.clients.append({"socket": client, "thread": t})
@@ -105,7 +106,23 @@ class Server:
         Utilities.logger("Sent" + str(len(data)) + " bytes")
 
     def receive(self, clientFD):
-        return clientFD.recv(1024)
+        # Read message length and unpack it into an integer
+        raw_msglen = self.recvall(clientFD, 4)
+        if not raw_msglen:
+            return None
+        msglen = struct.unpack('>I', raw_msglen)[0]
+        # Read the message data
+        return self.recvall(clientFD, msglen)
+
+    # Helper function to recv n bytes or return None if EOF is hit
+    def recvall(self, clientFD, length):
+        data = b''
+        while len(data) < length:
+            packet = clientFD.recv(length - len(data))
+            if not packet:
+                return None
+            data += packet
+        return data
 
     def closeConnection(self):
         # Code Section

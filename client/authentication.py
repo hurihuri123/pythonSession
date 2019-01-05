@@ -3,8 +3,12 @@ import utilities as Utilities
 
 class ClientAuth:
     def __init__(self):
-        pass
+        # Defaults login info
+        self.userName       = "huri"
+        self.password       = 1234
+        self.registration   = "Register:"
+        self.login          = "Login:"
 
-    def getAuthenticationMessage(self):
-        msg = "Register: huri 1234"
+    def getAuthMsg(self):
+        msg = self.login + self.userName + " " + str(self.password)
         return msg

@@ -31,9 +31,12 @@ class sqlLiteDataBase:
 
     def insertRowToTable(self, tableName, rowData, columns):
         # Build query
-        query = "insert into " + tableName + " values (?,?,?,?)"
-        self.manager.execute(query, rowData)  # Execute query
-        self.db.commit()  # Save changes
+        query = "insert into " + tableName + " values (?,?)"
+        try:
+            self.manager.execute(query, rowData)    # Execute query
+            self.db.commit()                        # Save changes
+        except sqlite3.Error as err:
+            raise ValueError(err)
 
     def executeQuery(self, query):
         return self.manager.execute(query).fetchall()
@@ -48,6 +51,12 @@ class sqlLiteDataBase:
 
     def testRowExistence(self, tableName, idColumnName, rowID):
         query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + idColumnName + " = '" + rowID + "'"
+        result = self.executeQuery(query)
+        return not not result[0][0]
+
+    def testLogin(self, tableName, tableColumns, loginInfo):
+        query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + \
+                tableColumns[0] + " = '" + loginInfo[tableColumns[0]]+ "'"
         result = self.executeQuery(query)
         return not not result[0][0]
 

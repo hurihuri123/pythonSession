@@ -19,9 +19,9 @@ class Client:
 
         # Code Section
         self.initClientSocket()
+        if (not self.clientAuth()):
+            return
         self.initKeepAliveSokcet()
-        # TODO - get auth message
-        # self.clientFD.send("Register:huri 1234")
         self.clientActions()
 
 
@@ -96,6 +96,8 @@ class Client:
         Utilities.logger(color + response["message"])  # Print response
         Utilities.logger(PrintColors.RESET)
 
+        return response["status"]
+
 
 
     def sendCLIrequests(self, serverMessage):
@@ -142,6 +144,17 @@ class Client:
         self.clientFD.close()       # Close Socket
         self.keepAliveFD.close()    # Close Socket
         Utilities.logger(PrintColors.WARNING + "Connection to remote expired")
+
+    def clientAuth(self):
+        # Variable Definition
+        authMsg = authInstance.getAuthMsg()
+
+        # Code Section
+        self.clientFD.send(authMsg)                 # Send Auth data
+        response = self.receive(self.clientFD)      # Receive Response
+        return self.deserializeResponse(response)
+
+
 
 
 

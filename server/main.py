@@ -2,10 +2,12 @@ import socket
 import threading
 import struct
 import time as PythonTime
+from threading import Lock
 
 # Local packages
 import utilities as Utilities
 from server.methods import *
+from server.auth import *
 
 
 class Server:
@@ -17,7 +19,7 @@ class Server:
         self.keepAliveThread    = None
         self.clients            = []
         self.keepAliveClients   = []
-        # self.auth           = Auth.ServerAuth() - create int __init__.py
+        self.mutex              = Lock()
 
         self.actions = [
             {"TIME":            getTimeMethod},
@@ -62,8 +64,8 @@ class Server:
 
     def handleConnection(self, clientFD):
         # Code Section
-        # authMessage = clientFD.recv(1024)
-        # self.auth.authenticate(authMessage, self.auth)
+        if(not self.authNewClient(clientFD)):
+            return
 
         self.send(clientFD, self.actionsToString())                     # Send actions list to client
         while(True):
@@ -108,6 +110,7 @@ class Server:
     def closeConnection(self):
         # Code Section
         return Utilities.getResponseObject(True, "Bye Bye")
+        # TODO - pass clientFD and close his 2 sockets + threads + remove from keep alive
 
     def handleCLIrequests(self, clientFD):
         # Variable Definition
@@ -149,6 +152,26 @@ class Server:
     def stopKeepAlive(self, clientFD):
         # Code Section
         self.keepAliveClients.remove({"socket": clientFD}) # Remove the client
+
+
+    def authNewClient(self, clientFD):
+        # Code Section
+        authMessage = clientFD.recv(1024)
+
+        self.mutex.acquire()                            # Lock Access to DB
+        serverAuth = authentication.ServerAuth()        # Create auth instance
+        result = serverAuth.authenticate(authMessage)   # Authenticate
+        self.mutex.release()                            # Unlock Access to DB
+        status = result["status"]
+
+        self.send(clientFD, Utilities.serialize(result))
+
+        if(not status):
+            self.closeConnection()
+            Utilities.logger("Authentication failed")
+
+        return status
+
 
 
 

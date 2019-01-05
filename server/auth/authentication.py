@@ -1,6 +1,8 @@
-# Local DLLs
-import server.utilities as Utilities
-import server.auth.sqliteDB  as DB
+import hashlib
+
+# Local packages
+import utilities as Utilities
+import sqliteDB as DB
 
 class ServerAuth:
     def __init__(self):
@@ -13,7 +15,7 @@ class ServerAuth:
 
         self.authOptions = {
             'Register': self.registration,
-            'Login':    'log',
+            'Login':    self.login,
             'Cookies:': 'cook'
         }
 
@@ -23,8 +25,7 @@ class ServerAuth:
 
         # Code Section
         Utilities.logger('Received authentication message : ' + data)
-        status = self.anlayzeRequest(data)
-        print('Authentication status : ' ,status)
+        return self.anlayzeRequest(data)
 
 
     def anlayzeRequest(self, request):
@@ -37,7 +38,10 @@ class ServerAuth:
 
     def registration(self, data):
         # Variable Definition
-        data = data.split(' ') # [userName, password]
+        data    = data.split(' ')       # [userName, password]
+
+        # MD5 the password
+        data[1] = hashlib.md5(data[1]).hexdigest()
 
         # Test user existence
         isUserExistes = self.db.testRowExistence(self.tableName, self.tableColumns[0], data[0])
@@ -56,16 +60,30 @@ class ServerAuth:
         try:
             self.db.insertRowToTable(self.tableName, data, self.tableColumns)  # Insert new row to DB
             response = self.getResponseObject(True, self.successRegist())
-        except:
-            response = self.getResponseObject(False, self.dbErrorMessage())
+        except ValueError as err:
+            response = self.getResponseObject(False, "Auth Faild -> " + str(err))
         finally:
             return response
 
 
     def initUsersTable(self):
         if(self.db.testTableExistence(self.tableName) == False) : # Test table existence
-            print("creating table")
             self.db.createTable(self.tableName, self.tableColumns)
+            Utilities.logger("Created users table")
+
+
+    def login(self, data):
+        # Variable Definition
+        data = data.split(' ')          # [userName, password]
+        # Code Section
+
+        password = hashlib.md5(data[1]).hexdigest() # MD5 user's password
+        compareObj = {self.tableColumns[0]: data[0], self.tableColumns[1]: password}
+
+        result = self.db.testLogin(self.tableName, self.tableColumns, compareObj)
+
+        return self.getResponseObject(True, self.dbSuccessLogin()) \
+            if result else self.getResponseObject(False, self.dbFailLogin())
 
 
 
@@ -74,9 +92,11 @@ class ServerAuth:
     def dbMessages(self):
         # Variable Definition
         messages = {
-            'succesfullyCreated'    : 'success regist',
-            'userAlreadyExiste'     : 'error existe',
-            'dataBaseError'         : 'db error'
+            'succesfullyCreated'    : 'Registed Succesfully',
+            'userAlreadyExiste'     : 'Registration Failed -> User already registered',
+            'dataBaseError'         : 'Internal DB Error',
+            'successLogin'          : 'Logged in succesfully',
+            'failLogin'             : 'Wrong password or userName'
         }
 
         # Code Section
@@ -91,5 +111,11 @@ class ServerAuth:
     def dbErrorMessage(self):
         return self.dbMessages().get('dataBaseError')
 
+    def dbSuccessLogin(self):
+        return self.dbMessages().get('successLogin')
+
+    def dbFailLogin(self):
+        return self.dbMessages().get('failLogin')
+
     def getResponseObject(self, status, message):
-        return {"status": status, "Message": message}
+        return {"status": status, "message": message}

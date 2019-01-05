@@ -1,8 +1,9 @@
 import socket
+import struct
 
 # Local DLLs
 import utilities as Utilities
-from printColors import *
+from client import *
 import authentication as Auth
 
 class Client:
@@ -32,27 +33,55 @@ class Client:
         # Code Section
         while(True):
             Utilities.logger(possibleActions)
-            action = raw_input("Please choose action \n")   # Get action from user
-            self.send(action)                               # Send action to server
-            response = self.receive(self.clientFD)          # Receive action response
-            message  = self.readResponse(response)          # Deserialize response
-            Utilities.logger(message)                       # Print response
+            request = raw_input("Please choose action \n")      # Get action from user
+            self.send(request)                                  # Send action to server
+            response = self.receive(self.clientFD)              # Receive action response
+            self.analyzeResponse(request,response)              # Analyze response
 
 
+    # Socket helper functions
     def send(self, data):
         self.clientFD.send(data)
         Utilities.logger("Sent : " + str(data))
 
     def receive(self, clientFD):
-        return clientFD.recv(1024)
+        # Read message length and unpack it into an integer
+        raw_msglen = self.recvall(clientFD, 4)
+        if not raw_msglen:
+            return None
+        msglen = struct.unpack('>I', raw_msglen)[0]
+        # Read the message data
+        return self.recvall(clientFD, msglen)
 
-    def readResponse(self, response):
+    # Helper function to recv n bytes or return None if EOF is hit
+    def recvall(self, clientFD, length):
+        data = b''
+        while len(data) < length:
+            packet = clientFD.recv(length - len(data))
+            if not packet:
+                return None
+            data += packet
+        return data
+
+
+    def analyzeResponse(self, request, response):
         # Variable Definition
-        response = Utilities.deserialize(response)
+        requests = {'3': openImage}
 
         # Code Section
+        return requests.get(request, self.deserializeResponse)(response)
+
+
+    def deserializeResponse(self,  response):
+        # Variable Definition
+        response = Utilities.deserialize(response)  # Deserialize response
+
+        # Code Section
+        # Set print color according to response status
         color = PrintColors.OKGREEN if response["status"] else PrintColors.FAIL
-        return color + response["message"]
+
+        Utilities.logger(color + response["message"])  # Print response
+
 
 
 

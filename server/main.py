@@ -1,6 +1,6 @@
 import socket
 import threading
-
+import struct
 # Local packages
 import utilities as Utilities
 from server.methods import *
@@ -79,8 +79,11 @@ class Server:
 
 
     def send(self, clientFD, data):
-        clientFD.send(data)
-        Utilities.logger("Sent : " + str(data))
+        # Prefix each message with a 4-byte length (network byte order)
+        data = struct.pack('>I', len(data)) + data
+
+        clientFD.sendall(data)      # Send loop until all bytes successfully delivered
+        Utilities.logger("Sent" + str(len(data)) + " bytes")
 
     def receive(self, clientFD):
         return clientFD.recv(1024)

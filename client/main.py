@@ -66,7 +66,8 @@ class Client:
 
     def analyzeResponse(self, request, response):
         # Variable Definition
-        requests = {'3': openImage}
+        requests = {'3': openImage,
+                    '4': self.sendCLIrequests}
 
         # Code Section
         return requests.get(request, self.deserializeResponse)(response)
@@ -81,6 +82,31 @@ class Client:
         color = PrintColors.OKGREEN if response["status"] else PrintColors.FAIL
 
         Utilities.logger(color + response["message"])  # Print response
+
+
+
+    def sendCLIrequests(self, serverMessage):
+        # Variable Definition
+        command = None
+
+        # Code Section
+        self.CLIlogger(serverMessage)                   # Print welcome message
+        while(command != "exit"):
+            serverMessage = self.receive(self.clientFD) # Server waiting for input msg
+            command = raw_input(serverMessage)          # Get input from client
+            self.send(command)                          # Send command to server
+            result = self.receive(self.clientFD)        # Receive command result
+            self.CLIlogger(result)                      # Print result
+
+
+    def CLIlogger(self, msg):
+        # Variable Definition
+        color = PrintColors.HEADER
+
+        # Code Section
+        Utilities.logger(color + msg)
+
+
 
 
 

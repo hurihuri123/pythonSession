@@ -1,6 +1,8 @@
 import socket
 import threading
 import struct
+import time as PythonTime
+
 # Local packages
 import utilities as Utilities
 from server.methods import *
@@ -9,21 +11,26 @@ from server.methods import *
 class Server:
     def __init__(self, port):
         # Variable Definition
-        self.serverFD       = None
-        self.serverThread   = None
-        self.clientThreads  = []
+        self.serverFD           = None
+        self.keepAliveFD        = None
+        self.serverThread       = None
+        self.keepAliveThread    = None
+        self.clients            = []
+        self.keepAliveClients   = []
         # self.auth           = Auth.ServerAuth() - create int __init__.py
 
         self.actions = [
-            {"TIME":        getTimeMethod},
-            {"NAME":        getComputerName},
-            {"EXIT":        self.closeConnection},
-            {"SCREENSHOT":  screenObject.CaptureScreenShot},
-            {"CLI":         self.handleCLIrequests},
+            {"TIME":            getTimeMethod},
+            {"NAME":            getComputerName},
+            {"EXIT":            self.closeConnection},
+            {"SCREENSHOT":      screenObject.CaptureScreenShot},
+            {"CLI":             self.handleCLIrequests},
+            {"StopKeepAlive":   self.stopKeepAlive}
         ]
 
         # Code Section
         self.initServerSocket(port)
+        self.initKeepAliveServer(port + 1)
 
 
     def initServerSocket(self, port):
@@ -32,8 +39,17 @@ class Server:
         self.serverFD.listen(10)                # Listen & Set pending queue length
         Utilities.logger("Server is listening...")
 
-        t = threading.Thread(target = self.handleNewConnections).start() # Start connections handler thread
-        self.serverThread = t                       # Store server thread
+        t = threading.Thread(target = self.handleNewConnections).start()    # Start connections handler thread
+        self.serverThread = t                                               # Store server thread
+
+    def initKeepAliveServer(self, port):
+        self.keepAliveFD = socket.socket(socket.AF_INET,socket.SOCK_STREAM)  # Create socket using Ipv4 family and TCP protocol
+        self.keepAliveFD.bind(('127.0.0.1', port)) # Bind socket with specific address & port
+        self.keepAliveFD.listen(10)                # Listen & Set pending queue length
+        Utilities.logger("KeepAlive server is listening...")
+
+        t = threading.Thread(target=self.handleKeepAliveConnections).start()    # Start connections handler thread
+        self.keepAliveThread = t                                                # Store server thread
 
     def handleNewConnections(self):
         # Code Section
@@ -42,7 +58,7 @@ class Server:
             Utilities.logger("Accepted new connection from " + address[0])
 
             t = threading.Thread(target = self.handleConnection, args = (client,)).start() # Start connection handler thread
-            self.clientThreads.append(t)
+            self.clients.append({"socket": client, "thread": t})
 
     def handleConnection(self, clientFD):
         # Code Section
@@ -90,7 +106,6 @@ class Server:
         return clientFD.recv(1024)
 
     def closeConnection(self):
-        # TODO - kill/stop thread & close socket
         # Code Section
         return Utilities.getResponseObject(True, "Bye Bye")
 
@@ -111,6 +126,29 @@ class Server:
             self.send(clientFD, result)
 
         return goodByeMsg
+
+    def handleKeepAliveConnections(self):
+        # Variable Definition
+
+        # Code Section
+        k = threading.Thread(target=self.keepAlive).start()  # Start keep alive thread
+
+        while(True):
+            client, address = self.keepAliveFD.accept()     # Accept new connection
+            Utilities.logger("Accepted new keepAlive connection from " + address[0])
+
+            self.keepAliveClients.append({"socket": client, id: "clientID"})
+
+    def keepAlive(self):
+        # Code Section
+        while(True):
+            for client in self.keepAliveClients:
+                self.send(client["socket"], "isAlive")
+            PythonTime.sleep(5)
+
+    def stopKeepAlive(self, clientFD):
+        # Code Section
+        self.keepAliveClients.remove({"socket": clientFD}) # Remove the client
 
 
 

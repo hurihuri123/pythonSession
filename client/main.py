@@ -1,7 +1,9 @@
 import socket
 import struct
+import threading
+import time
 
-# Local DLLs
+# Local packages
 import utilities as Utilities
 from client import *
 import authentication as Auth
@@ -9,12 +11,15 @@ import authentication as Auth
 class Client:
     def __init__(self, serverIP, serverPort):
         # Variable Definition
-        self.clientFD   = None
-        self.serverIP   = serverIP
-        self.serverPort = serverPort
+        self.clientFD           = None
+        self.keepAliveFD        = None
+        self.keepAliveThread    = None
+        self.serverIP           = serverIP
+        self.serverPort         = serverPort
 
         # Code Section
         self.initClientSocket()
+        self.initKeepAliveSokcet()
         # TODO - get auth message
         # self.clientFD.send("Register:huri 1234")
         self.clientActions()
@@ -24,7 +29,14 @@ class Client:
         # Code Section
         self.clientFD = socket.socket(socket.AF_INET,socket.SOCK_STREAM) # Create socket using Ipv4 family and TCP protocol
         self.clientFD.connect((self.serverIP, self.serverPort))          # Connect to remote server
-        Utilities.logger('Connected Successfully')
+        Utilities.logger('Client socket connected Successfully')
+
+    def initKeepAliveSokcet(self):
+        self.keepAliveFD = socket.socket(socket.AF_INET,socket.SOCK_STREAM) # Create socket using Ipv4 family and TCP protocol
+        self.keepAliveFD.connect((self.serverIP, self.serverPort + 1))      # Connect to remote server
+        Utilities.logger('KeepAlive socket connected Successfully')
+        self.keepAliveThread = threading.Thread(
+            target=self.testIsAlive).start()  # Start connections handler thread
 
     def clientActions(self):
         # Variable Definitions
@@ -82,6 +94,7 @@ class Client:
         color = PrintColors.OKGREEN if response["status"] else PrintColors.FAIL
 
         Utilities.logger(color + response["message"])  # Print response
+        Utilities.logger(PrintColors.RESET)
 
 
 
@@ -108,6 +121,30 @@ class Client:
 
         # Code Section
         Utilities.logger(color + msg)
+
+    def testIsAlive(self):
+        # Variable Definition
+        isAlive = True
+        color = PrintColors.UNDERLINE
+
+        # Code Section
+        self.keepAliveFD.settimeout(10)  # Close FD after 10 sec IDLE
+        while(isAlive):
+            try:
+                self.keepAliveFD.recv(1024)
+                Utilities.logger(color + "isAlive")
+            except:
+                isAlive = False
+                self.exit()
+
+    def exit(self):
+        # Code Section
+        self.clientFD.close()       # Close Socket
+        self.keepAliveFD.close()    # Close Socket
+        Utilities.logger(PrintColors.WARNING + "Connection to remote expired")
+
+
+
 
 
 

@@ -80,7 +80,7 @@ class Server:
         dictKey     = next(iter(actionDict)) # Get first dict key
 
         # Code Section
-        if(dictKey == "CLI"):
+        if(dictKey == "CLI" or dictKey == "StopKeepAlive"):
             return actionDict[dictKey](clientFD)
         return actionDict[dictKey]()
 
@@ -151,7 +151,10 @@ class Server:
 
     def stopKeepAlive(self, clientFD):
         # Code Section
-        self.keepAliveClients.remove({"socket": clientFD}) # Remove the client
+        # TODO - search socket by id and delete it from list
+        # self.keepAliveClients.remove({"socket": clientFD}) # Remove the client
+        self.keepAliveClients = []
+        return Utilities.getResponseObject(False, "Terminated keep alive")
 
 
     def authNewClient(self, clientFD):

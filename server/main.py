@@ -110,7 +110,7 @@ class Server:
             result  = CLIobject.runShellCommand(command)
             self.send(clientFD, result)
 
-        self.send(clientFD,goodByeMsg)
+        return goodByeMsg
 
 
 

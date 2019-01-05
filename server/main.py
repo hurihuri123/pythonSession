@@ -17,8 +17,8 @@ class Server:
         self.actions = [
             {"TIME":        getTimeMethod},
             {"NAME":        getComputerName},
-            {"EXIT":        "hi"},
-            {"SCREENSHOT": "time method"},
+            {"EXIT":        self.closeConnection()},
+            {"SCREENSHOT":  screenObject.ScreenShots()},
             {"EXECUTE":     "time method"},
             {"DIR_CONTENT": "time method"},
         ]
@@ -85,10 +85,10 @@ class Server:
     def receive(self, clientFD):
         return clientFD.recv(1024)
 
-    # def closeConnection(self):
-    #     # TODO - kill/stop thread
-    #     # Code Section
-    #     return Utilities.getResponseObject(True, 'Bye Bye')
+    def closeConnection(self):
+        # TODO - kill/stop thread & close socket
+        # Code Section
+        return Utilities.getResponseObject(True, "Bye Bye")
 
 
 server = Server(8080) # Init server socket

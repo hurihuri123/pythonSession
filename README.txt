@@ -4,6 +4,7 @@ Date:   05/01/19
 Description : Python client-server communication.
 
 Main packages:
+SSL             - Encrypt session
 Threads         - manage multiplie clients
 SQLite DB       - manage users
 Mutex           - Protect DB requests

@@ -1,6 +1,7 @@
 import socket
 import threading
 import struct
+import ssl
 import time as PythonTime
 from threading import Lock
 
@@ -57,10 +58,13 @@ class Server:
         # Code Section
         while(True):
             client, address = self.serverFD.accept()     # Accept new connection
+            secure_socket   = ssl.wrap_socket(client, server_side=True, ca_certs = "client.pem", certfile="server.pem", keyfile="server.key",
+                                              cert_reqs=ssl.CERT_REQUIRED, ssl_version=ssl.PROTOCOL_SSLv2)
+
             Utilities.logger("Accepted new connection from " + address[0])
 
-            t = threading.Thread(target = self.handleConnection, args = (client,)).start() # Start connection handler thread
-            self.clients.append({"socket": client, "thread": t})
+            t = threading.Thread(target = self.handleConnection, args = (secure_socket,)).start() # Start connection handler thread
+            self.clients.append({"socket": secure_socket, "thread": t})
 
     def handleConnection(self, clientFD):
         # Code Section

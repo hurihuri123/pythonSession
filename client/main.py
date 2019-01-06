@@ -7,7 +7,7 @@ import time
 import utilities as Utilities
 from client import *
 import authentication as Auth
-
+import ssl
 class Client:
     def __init__(self, serverIP, serverPort):
         # Variable Definition
@@ -27,7 +27,8 @@ class Client:
 
     def initClientSocket(self):
         # Code Section
-        self.clientFD = socket.socket(socket.AF_INET,socket.SOCK_STREAM) # Create socket using Ipv4 family and TCP protocol
+        sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM) # Create socket using Ipv4 family and TCP protocol
+        self.clientFD = ssl.wrap_socket(sock, certfile="client.pem", keyfile="client.key", ssl_version=ssl.PROTOCOL_SSLv2)
         self.clientFD.connect((self.serverIP, self.serverPort))          # Connect to remote server
         Utilities.logger('Client socket connected Successfully')
 

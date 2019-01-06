@@ -29,7 +29,6 @@ class Client:
         # Code Section
         self.clientFD = socket.socket(socket.AF_INET,socket.SOCK_STREAM) # Create socket using Ipv4 family and TCP protocol
         self.clientFD.connect((self.serverIP, self.serverPort))          # Connect to remote server
-        self.send(authInstance.getUserName())
         Utilities.logger('Client socket connected Successfully')
 
     def initKeepAliveSokcet(self):

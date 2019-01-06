@@ -57,8 +57,7 @@ class Server:
         # Code Section
         while(True):
             client, address = self.serverFD.accept()     # Accept new connection
-            userName = self.receive(client)
-            Utilities.logger("Accepted new connection from " + userName)
+            Utilities.logger("Accepted new connection from " + address[0])
 
             t = threading.Thread(target = self.handleConnection, args = (client,)).start() # Start connection handler thread
             self.clients.append({"socket": client, "thread": t})

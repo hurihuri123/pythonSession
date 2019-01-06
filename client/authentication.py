@@ -1,9 +1,11 @@
+import hashlib
 # Local DLLs
 import utilities as Utilities
 
 class ClientAuth:
     def __init__(self):
         self.userName       = "hurs"
+        self.infoFileName   = "info.txt"
         self.registration   = "Register:"
         self.login          = "Login:"
         self.authOptions    = [
@@ -44,13 +46,34 @@ class ClientAuth:
         return optionMessage
 
     def readInfoFromCookies(self):
-        return "huri 1234"
+        # Variable Definition
+        infoFile = None
+
+        # Code Section
+        try:
+            infoFile = open(self.infoFileName, "r")
+        except:
+            Utilities.logger("Couldn't find cookies file")
+            return self.getAuthMsg()
+
+        data = infoFile.read()
+        infoFile.close()
+        return data
+
 
     def getInfoFromClient(self):
         # Variable Definition
         userName    = raw_input("Enter username")
         password    = raw_input("Enter password")
+        password    = hashlib.md5(password).hexdigest() # MD5 the password
 
         # Code Section
         self.userName = userName
-        return userName + " " + password
+        loginInfo = userName + " " + password
+
+        # Save info to cookies file
+        file = open(self.infoFileName,"w")
+        file.write(loginInfo)
+        file.close()
+
+        return loginInfo

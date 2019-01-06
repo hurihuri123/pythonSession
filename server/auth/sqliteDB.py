@@ -56,7 +56,8 @@ class sqlLiteDataBase:
 
     def testLogin(self, tableName, tableColumns, loginInfo):
         query = "SELECT COUNT(*) FROM " + tableName + " WHERE " + \
-                tableColumns[0] + " = '" + loginInfo[tableColumns[0]]+ "'"
+                tableColumns[0] + " = '" + loginInfo[tableColumns[0]]+ "'" + " AND " + tableColumns[1] + " = '" + loginInfo[tableColumns[1]] + "'"
+
         result = self.executeQuery(query)
         return not not result[0][0]
 

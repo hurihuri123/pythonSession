@@ -1,4 +1,3 @@
-import hashlib
 
 # Local packages
 import utilities as Utilities
@@ -40,9 +39,6 @@ class ServerAuth:
         # Variable Definition
         data    = data.split(' ')       # [userName, password]
 
-        # MD5 the password
-        data[1] = hashlib.md5(data[1]).hexdigest()
-
         # Test user existence
         isUserExistes = self.db.testRowExistence(self.tableName, self.tableColumns[0], data[0])
         if(isUserExistes) :
@@ -75,10 +71,9 @@ class ServerAuth:
     def login(self, data):
         # Variable Definition
         data = data.split(' ')          # [userName, password]
-        # Code Section
 
-        password = hashlib.md5(data[1]).hexdigest() # MD5 user's password
-        compareObj = {self.tableColumns[0]: data[0], self.tableColumns[1]: password}
+        # Code Section
+        compareObj = {self.tableColumns[0]: data[0], self.tableColumns[1]: data[1]}
 
         result = self.db.testLogin(self.tableName, self.tableColumns, compareObj)
 

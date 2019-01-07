@@ -1,7 +1,7 @@
 # Python Session
 > Author: Daniel Huri
 > 
-> This was Built in Python 3.6+
+> This was Built in Python 2.7
 
 Python client-server communication.
 

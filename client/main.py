@@ -28,7 +28,7 @@ class Client:
     def initClientSocket(self):
         # Code Section
         sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM) # Create socket using Ipv4 family and TCP protocol
-        self.clientFD = ssl.wrap_socket(sock, certfile="client.pem", keyfile="client.key", ssl_version=ssl.PROTOCOL_SSLv2)
+        self.clientFD = ssl.wrap_socket(sock, certfile="client.pem", keyfile="client.key", ssl_version=ssl.PROTOCOL_TLS)
         self.clientFD.connect((self.serverIP, self.serverPort))          # Connect to remote server
         Utilities.logger('Client socket connected Successfully')
 

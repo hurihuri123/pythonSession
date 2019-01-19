@@ -59,7 +59,7 @@ class Server:
         while(True):
             client, address = self.serverFD.accept()     # Accept new connection
             secure_socket   = ssl.wrap_socket(client, server_side=True, ca_certs = "client.pem", certfile="server.pem", keyfile="server.key",
-                                              cert_reqs=ssl.CERT_REQUIRED, ssl_version=ssl.PROTOCOL_SSLv2)
+                                              cert_reqs=ssl.CERT_REQUIRED, ssl_version=ssl.PROTOCOL_TLS)
 
             Utilities.logger("Accepted new connection from " + address[0])
 

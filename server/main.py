@@ -47,7 +47,7 @@ class Server:
 
     def initKeepAliveServer(self, port):
         self.keepAliveFD = socket.socket(socket.AF_INET,socket.SOCK_STREAM)  # Create socket using Ipv4 family and TCP protocol
-        self.keepAliveFD.bind(('127.0.0.1', port)) # Bind socket with specific address & port
+        self.keepAliveFD.bind(('0.0.0.0', port)) # Bind socket with specific address & port
         self.keepAliveFD.listen(10)                # Listen & Set pending queue length
         Utilities.logger("KeepAlive server is listening...")
 
